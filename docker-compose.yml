@@ -1,4 +1,3 @@
-version: '3.8'
 # services - це те за допомогою чого будуть створюватися containers за допомогою docker-compose
 services:
   # app - django development server
