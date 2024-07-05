@@ -1,0 +1,47 @@
+version: '3.8'
+# services - це те за допомогою чого будуть створюватися containers за допомогою docker-compose
+services:
+  # app - django development server
+  app:
+    build:
+      # context: . - шлях до директорії з Dockerfile
+      # Dockerfile - буде використаний docker-compose для білда image і запуску з нього containera
+      context: .
+    ports:
+      - "8000:8000"
+    # volumes - місця для зберігання даних, ./app - локальна папка яку підключуємо до контейнера
+    # всі зміни які будем робити локально будуть зберігатися в докер-контейнері (щоб не робити ребілдів)
+    volumes:
+      - ./app:/app
+    environment:
+      - DB_HOST=database # DB_HOST - вказуєм силку на інший сервіс docker-compose, а саме: database
+      - DB_NAME=dbname
+      - DB_USER=dbuser
+      - DB_PASS=pass
+
+    # command - для запуску django server
+    command: >
+      sh -c "python manage.py runserver 0.0.0.0:8000"
+
+    # depends_on - вказуємо що app буде запущено після запуску database
+    depends_on:
+      - database
+
+  # database - база даних
+  database:
+    # postgres - використовуєм образ з docker-hub
+    # 16.3-alpine - версія образу
+    image: postgres:16.3-alpine
+    # прописуєм зміні: POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD щоб звязатися з app
+    environment:
+      - POSTGRES_DB=dbname
+      - POSTGRES_USER=dbuser
+      - POSTGRES_PASSWORD=pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Це стандартний шлях, де PostgreSQL зберігає свої дані в контейнері.
+
+# postgres_data додали назву для volumes
+volumes:
+    postgres_data:
