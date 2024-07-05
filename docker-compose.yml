@@ -14,7 +14,7 @@ services:
       - ./app:/app
     environment:
       - DB_HOST=database # DB_HOST - вказуєм силку на інший сервіс docker-compose, а саме: database
-      - DB_NAME=dbname
+      - DB_NAME=dbbackend
       - DB_USER=dbuser
       - DB_PASS=pass
 
@@ -33,7 +33,7 @@ services:
     image: postgres:16.3-alpine
     # прописуєм зміні: POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD щоб звязатися з app
     environment:
-      - POSTGRES_DB=dbname
+      - POSTGRES_DB=dbbackend
       - POSTGRES_USER=dbuser
       - POSTGRES_PASSWORD=pass
     ports:
