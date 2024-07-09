@@ -1,8 +1,11 @@
+import json
 import unittest
 
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.urls import reverse
+from django.contrib.auth.models import User
 
 from store.models import Book
 from store.serializers import BookSerializer
@@ -11,6 +14,8 @@ from store.serializers import BookSerializer
 class BooksApiTestCase(APITestCase):
     # setUp - допоміжна функція яка буде виконуватися перед кожним тестовим запитом
     def setUp(self):
+        self.user = User.objects.create_user(username='test_user')
+
         self.book_1 = Book.objects.create(name='Test book 1', price=25,
                                           author_name='Author 1')
         self.book_2 = Book.objects.create(name='Test book 2', price=55,
@@ -96,6 +101,57 @@ class BooksApiTestCase(APITestCase):
             BookSerializer(books, many=True).data,
             response.data
         )
+
+    def test_get_create(self):
+        self.assertEqual(3, Book.objects.all().count())
+        url = reverse('book-list')
+        data = {
+            "name": "Programming Python 3",
+            "price": 150,
+            "author_name": "Kotee"
+        }
+        json_data = json.dumps(data)
+        self.client.force_login(self.user)
+        response = self.client.post(url, data=json_data,
+                                    content_type='application/json')
+
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertEqual(4, Book.objects.all().count())
+
+    def test_get_update(self):
+        # args=[self.book_1.id] - передаймо айді в url
+        url = reverse('book-detail', args=[self.book_1.id])
+        data = {
+            "name": self.book_1.name,
+            "price": 575,
+            "author_name": self.book_1.author_name
+        }
+        json_data = json.dumps(data)
+        self.client.force_login(self.user)
+        response = self.client.put(url, data=json_data,
+                                   content_type='application/json')
+
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        # refresh_from_db - додаємо для того щою оновити в потоці дані
+        self.book_1.refresh_from_db()
+        self.assertEqual(575, self.book_1.price)
+
+    def test_delete_book(self):
+        self.assertEqual(3, Book.objects.all().count())
+        url = reverse('book-detail', args=[self.book_1.id])
+        self.client.force_login(self.user)
+        response = self.client.delete(url)
+
+        self.assertEqual(status.HTTP_204_NO_CONTENT, response.status_code)
+        self.assertEqual(2, Book.objects.all().count())
+
+        # Перевіряємо, що книга дійсно видалена
+        with self.assertRaises(ObjectDoesNotExist):
+            Book.objects.get(id=self.book_1.id)
+
+        # Додаткова перевірка через API
+        get_response = self.client.get(url)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, get_response.status_code)
 
 
 if __name__ == '__main__':
