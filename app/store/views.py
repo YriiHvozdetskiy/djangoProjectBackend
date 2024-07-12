@@ -1,3 +1,4 @@
+from django.db.models import Count, When, Case
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -11,7 +12,8 @@ from store.serializers import BookSerializer, UserBookRelationSerializer
 
 
 class BookViewSet(ModelViewSet):
-    queryset = Book.objects.all()
+    queryset = Book.objects.all().annotate(
+        annotation_likes=Count(Case(When(userbookrelation__like=True, then=1))))
     serializer_class = BookSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     # IsAuthenticatedOrReadOnly - змінювати можуть тільки для аутентифікованні користувачі
