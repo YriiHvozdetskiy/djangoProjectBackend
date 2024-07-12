@@ -8,7 +8,7 @@ from rest_framework.test import APITestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
 
-from store.models import Book
+from store.models import Book, UserBookRelation
 from store.serializers import BookSerializer
 
 
@@ -196,6 +196,35 @@ class BooksApiTestCase(APITestCase):
         # Додаткова перевірка через API
         get_response = self.client.get(url)
         self.assertEqual(status.HTTP_404_NOT_FOUND, get_response.status_code)
+
+
+class BooksRelationTestCase(APITestCase):
+    # setUp - допоміжна функція яка буде виконуватися перед кожним тестовим запитом
+    def setUp(self):
+        self.user = User.objects.create_user(username='test_user')
+        self.user_2 = User.objects.create_user(username='test_user_2')
+
+        self.book_1 = Book.objects.create(name='Test book 1', price=25,
+                                          author_name='Author 1',
+                                          owner=self.user)
+        self.book_2 = Book.objects.create(name='Test book 2', price=55,
+                                          author_name='Author 5')
+
+    def test_like(self):
+        # userbookrelation-list - отримати список
+        # userbookrelation-detail - отримати детальну інформацію
+        url = reverse('userbookrelation-detail', args=[self.book_1.id])
+        data = {
+            "like": True,
+        }
+        json_data = json.dumps(data)
+        self.client.force_login(self.user)
+        # self.client - клієнт який використовується для виконання запитів
+        responce = self.client.patch(url, data=json_data,
+                                     content_type='application/json')
+        self.assertEqual(status.HTTP_200_OK, responce.status_code)
+        relation = UserBookRelation.objects.get(user=self.user, book=self.book_1)
+        self.assertTrue(relation.like)
 
 
 if __name__ == '__main__':
