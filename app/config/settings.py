@@ -37,10 +37,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # стороні пакети
+    'debug_toolbar',
     'social_django',
 
     # пакети які ми створили
     'store.apps.StoreConfig'
+]
+
+INTERNAL_IPS = [
+    '127.0.0.1',
 ]
 
 MIDDLEWARE = [
@@ -51,6 +56,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
+
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -135,7 +142,6 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.JSONParser',
     )
 }
-
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
