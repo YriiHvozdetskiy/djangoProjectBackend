@@ -12,8 +12,11 @@ from store.serializers import BookSerializer, UserBookRelationSerializer
 
 
 class BookViewSet(ModelViewSet):
+    # select_related - вибирає ОДИН об'єкт зв'язаний з книгами
+    # prefer_related - вибирає ВСІ зв'язані об'єкти з книгами
     queryset = Book.objects.all().annotate(
-        annotation_likes=Count(Case(When(userbookrelation__like=True, then=1))))
+        annotation_likes=Count(Case(When(userbookrelation__like=True, then=1)))
+        ).select_related('owner').prefetch_related('readers')
     serializer_class = BookSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     # IsAuthenticatedOrReadOnly - змінювати можуть тільки для аутентифікованні користувачі
