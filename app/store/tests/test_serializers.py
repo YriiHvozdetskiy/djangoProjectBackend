@@ -54,5 +54,6 @@ class BookSerializerTestCase(TestCase):
         ]
         self.assertEqual(expected_data, data)
 
-        if __name__ == '__main__':
-            unittest.main()
+
+if __name__ == '__main__':
+    unittest.main()
